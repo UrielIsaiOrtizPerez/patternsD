@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <title>Patrón Observador</title>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <style>
+        .container {
+            width: 90%;
+            height: 140px;
+            padding: 5px;
+            margin: 10px auto;
+            background-color: #eeeeee;
+            display: -webkit-flex;
+            display: -ms-flexbox;
+            /*display: flex;*/
+        }
+        .container .nowrap {
+            -webkit-flex-wrap: nowrap;
+            -ms-flex-wrap: nowrap;
+            flex-wrap: nowrap;
+        }
+        .box {
+            background-color: #ccc;
+            margin: 10px;
+            width: 100%;
+            border: 1px solid;
+            padding: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <label>Texto: </label>
+        <textarea style="width: 100%; height: 100px;" id="textAreaInput"></textarea>
+    </div>
+    <div class="container nowrap">
+        <div id="textDisplay" class="box"></div>
+        <div id="textLength" class="box"></div>
+        <div id="keywordCheck" class="box"></div>
+    </div>
+</body>
+
+<script>
+class Observable {
+    constructor() {
+        this.listeners = [];
+    }
+
+    addListener(listener) {
+        this.listeners.push(listener);
+    }
+
+    removeListener(listener) {
+        this.listeners = this.listeners.filter(l => l !== listener);
+    }
+
+    notifyAll(state) {
+        this.listeners.forEach(listener => listener.update(state));
+    }
+}
+
+class TextManager extends Observable {
+    constructor() {
+        super();
+        this.currentText = "";
+    }
+
+    updateText(newText) {
+        this.currentText = newText;
+        super.notifyAll(this);
+    }
+}
+
+class TextDisplayObserver {
+    update(subject) {
+        document.getElementById("textDisplay").innerHTML = subject.currentText;
+    }
+}
+
+class TextLengthObserver {
+    update(subject) {
+        document.getElementById("textLength").innerHTML = subject.currentText.length;
+    }
+}
+
+class KeywordObserver {
+    update(subject) {
+        if (subject.currentText.toLowerCase().includes("cerveza")) {
+            document.getElementById("keywordCheck").innerHTML = "¡Salud!";
+        } else {
+            document.getElementById("keywordCheck").innerHTML = ":(";
+        }
+    }
+}
+
+// Crear sujeto y observadores
+const textManager = new TextManager();
+const displayObserver = new TextDisplayObserver();
+const lengthObserver = new TextLengthObserver();
+const keywordObserver = new KeywordObserver();
+
+// Registrar observadores
+textManager.addListener(displayObserver);
+textManager.addListener(lengthObserver);
+textManager.addListener(keywordObserver);
+
+// Configurar el evento del área de texto
+document.getElementById("textAreaInput").addEventListener("input", (event) => {
+    textManager.updateText(event.target.value);
+});
+</script>
+</html>
